@@ -24,7 +24,7 @@ public class ApplicationVerticle extends AbstractVerticle
 	@Override
 	public void start(Future<Void> startFuture) throws Exception {
 			System.out.println("raj");
-			Router router = Router.router(vertx);
+			final Router router = Router.router(vertx);
 	
 			 Set<String> allowedHeaders = new HashSet<>();
 			    allowedHeaders.add("x-requested-with");
@@ -59,8 +59,12 @@ public class ApplicationVerticle extends AbstractVerticle
 		 	 
 		 	router.route().handler(BodyHandler.create());
 		    router.post("/postval").handler(this::addOne);
+		    router.post("/postval/stock").handler(this::addstock);
+		    router.post("/delval").handler(this::delstock);
 		    router.get("/getval/:id").handler(this::getOne);
+		    router.get("/getvalues").handler(this::getValue);
 		    router.put("/changeval/:id").handler(this::updateOne);
+		    router.put("/updateval").handler(this::updatestock);
 		    
 
 		    // Create the HTTP server and pass the "accept" method to the request handler.
@@ -95,11 +99,50 @@ public class ApplicationVerticle extends AbstractVerticle
 		  }
 		  
 		  
+		  private void getValue(RoutingContext routingContext) {
+			  Postgresql ps = new Postgresql();
+			
+			  
+			  HttpServerResponse response=routingContext.response();
+		   		response
+		   		.putHeader("content-type", "application/json; charset=utf-8")
+		        .end((String)ps.GetDetails());
+			  
+		  }
+		  
+		  
 		  private void addOne(RoutingContext routingContext) {
 			  JsonObject body = routingContext.getBodyAsJson();
 			 
 			  Postgresql ps = new Postgresql();
 			  ps.AddValues(body);
+			    HttpServerResponse response=routingContext.response();
+		   		response
+		   		.putHeader("content-type", "application/json; charset=utf-8")
+		        .end(Json.encodePrettily("Success"));
+		
+			  }
+		  
+		  
+		  private void addstock(RoutingContext routingContext) {
+			  JsonObject body = routingContext.getBodyAsJson();
+			  System.out.println(body);
+			  Postgresql ps = new Postgresql();
+			  ps.Addstock(body);
+			    HttpServerResponse response=routingContext.response();
+		   		response
+		   		.putHeader("content-type", "application/json; charset=utf-8")
+		        .end(Json.encodePrettily("Success"));
+		
+			  }
+		  
+		  
+		  private void delstock(RoutingContext routingContext) {
+			  System.out.println("hii");
+			  String body = routingContext.getBodyAsString();
+			  System.out.println(body);
+			  Postgresql ps = new Postgresql();
+			  ps.Delstock(body);
 			    HttpServerResponse response=routingContext.response();
 		   		response
 		   		.putHeader("content-type", "application/json; charset=utf-8")
@@ -119,6 +162,25 @@ public class ApplicationVerticle extends AbstractVerticle
 			    } else {
 			    	 Postgresql ps = new Postgresql();
 			    	 ps.UpdateValues(id,json);
+			    	 
+			    	HttpServerResponse response=routingContext.response();
+			   		response
+			   		.putHeader("content-type", "application/json; charset=utf-8")
+			        .end(Json.encodePrettily("Success"));
+			
+			    }
+			  }
+		  
+		  private void updatestock(RoutingContext routingContext) {
+			   
+			    JsonObject json = routingContext.getBodyAsJson();
+			    System.out.println(json);
+			    final String id = json.getString("item_name");
+			    if (id == null || json == null) {
+			      routingContext.response().setStatusCode(400).end();
+			    } else {
+			    	 Postgresql ps = new Postgresql();
+			    	 ps.Updatestock(id,json);
 			    	 
 			    	HttpServerResponse response=routingContext.response();
 			   		response
